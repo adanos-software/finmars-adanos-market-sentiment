@@ -1,0 +1,8 @@
+{
+  "symbols": ["TSLA", "NVDA", "AAPL"],
+  "source": "news_stocks",
+  "days": 7,
+  "include_empty": true,
+  "instrument_column": "Instrument",
+  "attribute_prefix": "Adanos"
+}

@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finmars-adanos-market-sentiment"
+version = "0.1.0"
+description = "Optional Finmars Universal Provider connector for Adanos Market Sentiment API data."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Adanos", email = "contact@adanos.org" }
+]
+keywords = ["adanos", "finmars", "sentiment", "market-data", "portfolio-management"]
+dependencies = [
+  "fastapi>=0.110",
+  "httpx>=0.27",
+  "pydantic>=2.6",
+  "uvicorn[standard]>=0.27"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.0"
+]
+
+[project.urls]
+Homepage = "https://api.adanos.org/docs/"
+Source = "https://github.com/adanos-software/finmars-adanos-market-sentiment"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"

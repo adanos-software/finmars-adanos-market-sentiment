@@ -1,0 +1,18 @@
+{
+  "id": "procedure-run-001",
+  "user": {
+    "token": "finmars-user-token"
+  },
+  "provider": "universal",
+  "scheme_name": "adanos_market_sentiment",
+  "scheme_type": "simple_import",
+  "options": {
+    "symbols": "TSLA,NVDA,AAPL",
+    "adanos_source": "news_stocks",
+    "adanos_days": 7,
+    "include_empty": true,
+    "instrument_column": "Instrument",
+    "attribute_prefix": "Adanos"
+  },
+  "data": []
+}
