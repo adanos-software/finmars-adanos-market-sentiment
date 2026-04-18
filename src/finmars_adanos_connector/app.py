@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from hmac import compare_digest
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
@@ -29,7 +30,7 @@ def verify_connector_token(
     settings: Annotated[Settings, Depends(get_settings)],
     x_connector_token: Annotated[str | None, Header(alias="X-Connector-Token")] = None,
 ) -> None:
-    if settings.connector_token and x_connector_token != settings.connector_token:
+    if settings.connector_token and not compare_digest(x_connector_token or "", settings.connector_token):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid connector token")
 
 

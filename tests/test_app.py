@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from finmars_adanos_connector.app import create_app, get_adanos_client, get_settings
+from finmars_adanos_connector.adanos import AdanosClientError
 from finmars_adanos_connector.models import SentimentRecord, Source
 from finmars_adanos_connector.settings import Settings
 
@@ -25,15 +26,25 @@ class FakeAdanosClient:
         ]
 
 
-def _client(*, connector_token: str | None = None) -> TestClient:
+class FailingAdanosClient:
+    async def fetch_compare(self, **_: object) -> list[SentimentRecord]:
+        raise AdanosClientError("upstream unavailable")
+
+
+def _client(
+    *,
+    connector_token: str | None = None,
+    adanos_api_key: str | None = "sk_live_env",
+    fake_client: object | None = None,
+) -> TestClient:
     app = create_app()
     app.dependency_overrides[get_settings] = lambda: Settings(
-        adanos_api_key="sk_live_env",
+        adanos_api_key=adanos_api_key,
         adanos_base_url="https://api.adanos.org",
         connector_token=connector_token,
         request_timeout_seconds=20.0,
     )
-    app.dependency_overrides[get_adanos_client] = lambda: FakeAdanosClient()
+    app.dependency_overrides[get_adanos_client] = lambda: fake_client or FakeAdanosClient()
     return TestClient(app)
 
 
@@ -67,6 +78,16 @@ def test_connector_token_is_enforced_when_configured() -> None:
     assert accepted.status_code == 200
 
 
+def test_missing_adanos_api_key_returns_clear_direct_error() -> None:
+    response = _client(adanos_api_key=None).post(
+        "/v1/finmars/simple-import/sentiment",
+        json={"symbols": ["TSLA"]},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "ADANOS_API_KEY is not configured"
+
+
 def test_universal_endpoint_returns_finmars_envelope() -> None:
     response = _client().post(
         "/v1/finmars/universal/sentiment",
@@ -85,3 +106,22 @@ def test_universal_endpoint_returns_finmars_envelope() -> None:
     assert payload["provider"] == "adanos"
     assert payload["error_status"] == 0
     assert [row["Instrument"] for row in payload["data"]] == ["TSLA", "NVDA"]
+
+
+def test_universal_endpoint_returns_error_envelope_for_upstream_failures() -> None:
+    response = _client(fake_client=FailingAdanosClient()).post(
+        "/v1/finmars/universal/sentiment",
+        json={
+            "id": "run-2",
+            "user": {"token": "finmars-user-token"},
+            "scheme_name": "adanos_market_sentiment",
+            "scheme_type": "simple_import",
+            "options": {"symbols": "TSLA", "adanos_source": "news_stocks"},
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["id"] == "run-2"
+    assert payload["error_status"] == 1
+    assert "upstream unavailable" in payload["error_message"]

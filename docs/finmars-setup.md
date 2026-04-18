@@ -52,3 +52,4 @@ The data is optional enrichment. Portfolios, trades, positions, prices, and acco
 - Run the procedure on a schedule that matches the selected source. News/X can be more frequent than slow portfolio reporting workflows.
 - Use `include_empty=true` when downstream reporting expects stable row counts.
 - Use `attribute_prefix` to isolate multiple source mappings, for example `Adanos News` and `Adanos Polymarket`.
+- Keep `ADANOS_API_KEY` and `ADANOS_BASE_URL` on the connector host. Finmars procedure options should only contain non-secret mapping settings.

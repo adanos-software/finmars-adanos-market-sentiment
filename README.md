@@ -43,6 +43,16 @@ export FINMARS_CONNECTOR_TOKEN="replace-with-a-random-shared-secret"
 
 `FINMARS_CONNECTOR_TOKEN` is optional, but recommended. When configured, every connector request must include `X-Connector-Token`.
 
+## Run With Docker
+
+```bash
+docker build -t finmars-adanos-market-sentiment .
+docker run --rm -p 8080:8080 \
+  -e ADANOS_API_KEY="sk_live_your_key_here" \
+  -e FINMARS_CONNECTOR_TOKEN="replace-with-a-random-shared-secret" \
+  finmars-adanos-market-sentiment
+```
+
 ## Direct Simple Import Endpoint
 
 ```bash
@@ -140,3 +150,4 @@ python -m compileall src
 - Configure `ADANOS_API_KEY` and `ADANOS_BASE_URL` server-side. The connector does not accept per-request API key or base URL overrides.
 - Set `FINMARS_CONNECTOR_TOKEN` for shared-secret protection between Finmars and the connector.
 - Terminate TLS at your ingress or reverse proxy if the connector is not running inside a private network.
+- Treat Finmars Universal Provider options as non-secret configuration. Do not store Adanos API keys there.
